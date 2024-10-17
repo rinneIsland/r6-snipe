@@ -301,7 +301,7 @@ public class ScheduledService {
     }
 
     //白天低频监控模式
-    @Scheduled(cron = "0/2 * 8,9,10,11,12,13,14,15,16,17,20 * * ? ")
+    @Scheduled(cron = "0/3 * 8,9,10,11,12,13,14,15,16,17,20 * * ? ")
     public void scheduled2() {
         if (hightSpeed) {
             return;
