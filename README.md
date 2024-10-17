@@ -1,7 +1,7 @@
 # r6-snipe
 因为我删除了部分敏感代码信息，所以直接运行是无法运行的，需要自己排查
 
-启动需要手动添加育碧的二步cookie数据，这个自己控制台随便抓一个API手动获取吧
+启动需要手动添加育碧的二步cookie数据，这个自己控制台随便抓一个API手动获取吧，数据放到data.json里面
 ![cbe5a6651f31894d243d1642b7bea52](https://github.com/user-attachments/assets/32bcf265-d89a-4e71-bfa7-ef1af81c06e7)
 
 截胡最重要的就是时间，
