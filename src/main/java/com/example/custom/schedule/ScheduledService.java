@@ -217,7 +217,13 @@ public class ScheduledService {
                             List<SellStats> bSellStats = nodes1.getMarketData().getSellStats();
                             int bSellPrice = bSellStats != null ? bSellStats.get(0).getLowestPrice() : 0;
                             int bSellNum = bSellStats != null ? bSellStats.get(0).getActiveCount() : 0;
-                            return (bSellPrice != sellPrice && sellPrice >= 10000);
+                            if (bSellNum != sellNum && sellNum <= 5) {
+                                LOGGER.info(a.toString());
+                            }
+                            if (bSellNum > sellNum &&buyNum < 3 && sellNum <= 1) {
+                                return true;
+                            }
+                            return (bSellNum > sellNum && sellPrice >= 9000);
                         }
                     }
                     return sellPrice >= 9000;
@@ -227,6 +233,7 @@ public class ScheduledService {
                 LOGGER.info("低速模式发现订单");
                 List<SellStats> sellStats = nodes1.getMarketData().getSellStats();
                 int sellPrice = sellStats != null ? sellStats.get(0).getLowestPrice() : 10000;
+                int sellNum = sellStats != null ? sellStats.get(0).getActiveCount() : 0;
                 List<LastSoldAt> lastSoldAt = nodes1.getMarketData().getLastSoldAt();
                 int lastPrice = lastSoldAt != null ? lastSoldAt.get(0).getPrice() : 0;
                 stringBuilder.append(nodes1);
@@ -246,51 +253,29 @@ public class ScheduledService {
                 if (modified) {
                     orderSellPrice = Integer.parseInt(modifiedNumber.toString());
                 }
-
+                if (orderSellPrice<2000){
+                    orderSellPrice = 9999;
+                }
                 String tradeId = sellTradeMap.get(nodes1.getItem().getItemId());
                 try {
 
                     if (tradeId == null) {
 //                        Thread.sleep(3000);
-
-                        if (lastPrice > 6000) {
-                            LOGGER.info("低速模式延迟订单");
-                            Thread.sleep(5000);
-                        } else {
-                            if (waitTime>0){
-                                Thread.sleep(waitTime);
-                            }
+                            if (sellNum==1) {
+                                Thread.sleep(600);
                         }
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 boolean createdSell = false;
-                boolean newSell = false;
-
                 if (tradeId != null) {
                     createdSell = updateOrder(tradeId, String.valueOf(orderSellPrice));
                 } else {
                     createdSell = createdSell(nodes1.getItem().getItemId(), orderKey, orderSellPrice);
-                    newSell = true;
                 }
                 if (createdSell) {
                     nodes1.getMarketData().getSellStats().get(0).setLowestPrice(orderSellPrice);
-                    if (newSell) {
-                        tradeId = sellTradeMap.get(nodes1.getItem().getItemId());
-                        try {
-                            Thread.sleep(1500);
-                            for (int i = 0; i < 5; i++) {
-                                Thread.sleep(500);
-                                orderSellPrice = (int) (orderSellPrice * 0.95);
-                                updateOrder(tradeId, String.valueOf(orderSellPrice));
-                                nodes1.getMarketData().getSellStats().get(0).setLowestPrice(orderSellPrice);
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
                 }
                 LOGGER.info(stringBuilder.toString());
             });
@@ -598,9 +583,13 @@ public class ScheduledService {
                             List<SellStats> bSellStats = nodes1.getMarketData().getSellStats();
                             int bSellPrice = bSellStats != null ? bSellStats.get(0).getLowestPrice() : 0;
                             int bSellNum = bSellStats != null ? bSellStats.get(0).getActiveCount() : 0;
-
-
-                            return ((bSellPrice != sellPrice && sellPrice > 9000) || buyPrice > 16000);
+                            if (sellNum != bSellNum) {
+                                LOGGER.info(a.toString());
+                            }
+                            if (sellNum < bSellNum && buyNum < 3 && sellNum <= 1) {
+                                return true;
+                            }
+                            return (sellNum != bSellNum && sellPrice > 9000);
                         }
                     }
                     return sellPrice >= 16000;
@@ -608,23 +597,8 @@ public class ScheduledService {
                 return false;
             }).forEach(nodes1 -> {
                 List<SellStats> sellStats = nodes1.getMarketData().getSellStats();
-                int sellPrice = 70000;
-                if (sellStats != null) {
-                    sellPrice = sellStats.get(0).getLowestPrice();
-                } else {
-                    if (nodes1.getItem().getTags().contains("rarity_rare")) {
-                        sellPrice = 34000;
-
-                    } else if (nodes1.getItem().getTags().contains("rarity_uncommon")) {
-                        sellPrice = 24000;
-                    } else {
-                        sellPrice = 100000;
-                    }
-                }
-                List<BuyStats> buyStats = nodes1.getMarketData().getBuyStats();
-                int buyPrice = buyStats != null ? buyStats.get(0).getHighestPrice() : 0;
-                int buyNum = buyStats != null ? buyStats.get(0).getActiveCount() : 0;
-                String tradeId = sellTradeMap.get(nodes1.getItem().getItemId());
+                int sellPrice = sellStats != null ? sellStats.get(0).getLowestPrice() : 10000;
+                int sellNum = sellStats != null ? sellStats.get(0).getActiveCount() : 0;
 
                 stringBuilder.append(nodes1);
 
@@ -639,54 +613,36 @@ public class ScheduledService {
                         break;
                     }
                 }
-                if (!modified) {
-                    // 如果首字符后都是0，则首字符减1
-                    modifiedNumber.setCharAt(0, (char) (modifiedNumber.charAt(0) - 1));
+                int orderSellPrice = sellPrice - 100;
+                if (modified) {
+                    orderSellPrice = Integer.parseInt(modifiedNumber.toString());
                 }
-                int orderSellPrice = Integer.parseInt(modifiedNumber.toString());
-                if (orderSellPrice == 0) {
-                    orderSellPrice = sellPrice - 100;
+                if (orderSellPrice<2000){
+                    orderSellPrice = 9999;
                 }
-                if (buyPrice > 15000) {
-                    orderSellPrice = buyPrice;
-                }
-                try {
+                String tradeId = sellTradeMap.get(nodes1.getItem().getItemId());
+
                     if (tradeId==null){
-                        if (waitTime>0){
-                            Thread.sleep(waitTime);
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                boolean createdSell = false;
-                boolean newSell = false;
-
-                // 记录结束时间
-                if (tradeId != null) {
-                    createdSell = updateOrder(tradeId, String.valueOf(orderSellPrice));
-                } else {
-                    createdSell = createdSell(nodes1.getItem().getItemId(), orderKey, orderSellPrice);
-                    newSell = true;
-                }
-
-                if (createdSell) {
-                    nodes1.getMarketData().getSellStats().get(0).setLowestPrice(orderSellPrice);
-                    if (newSell) {
-                        tradeId = sellTradeMap.get(nodes1.getItem().getItemId());
                         try {
-                            Thread.sleep(1500);
-                            for (int i = 0; i < 5; i++) {
-                                Thread.sleep(500);
-                                orderSellPrice = (int) (orderSellPrice * 0.95);
-                                updateOrder(tradeId, String.valueOf(orderSellPrice));
-                                nodes1.getMarketData().getSellStats().get(0).setLowestPrice(orderSellPrice);
+                            if (sellNum==1){
+                                Thread.sleep(700);
                             }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
+
+                boolean createdSell = false;
+                // 记录结束时间
+                if (tradeId != null) {
+                    createdSell = updateOrder(tradeId, String.valueOf(orderSellPrice));
+                } else {
+                    createdSell = createdSell(nodes1.getItem().getItemId(), orderKey, orderSellPrice);
+
+                }
+
+                if (createdSell) {
+                    nodes1.getMarketData().getSellStats().get(0).setLowestPrice(orderSellPrice);
                 }
                 LOGGER.info(nodes1.toString());
                 LOGGER.info(beforItem.toString());
