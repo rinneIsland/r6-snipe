@@ -145,9 +145,9 @@ public class ScheduledService {
                         if (sellNum <= 1) {
                             try {
                                 if (hSellPrice < 10000 || sellNum == 0) {
-                                    Thread.sleep(800);
+                                    Thread.sleep(1200);
                                 } else {
-                                    Thread.sleep(300);
+                                    Thread.sleep(800);
                                 }
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -157,9 +157,9 @@ public class ScheduledService {
                         if (buyNum > 10 && buyPrice <= 2000 && buyPrice >= 100) {
                             try {
                                 if (sellNum >= 4) {
-                                    Thread.sleep(1200);
+                                    Thread.sleep(1500);
                                 } else {
-                                    Thread.sleep(300);
+                                    Thread.sleep(1000);
                                 }
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
