@@ -217,13 +217,13 @@ public class ScheduledService {
                             List<SellStats> bSellStats = nodes1.getMarketData().getSellStats();
                             int bSellPrice = bSellStats != null ? bSellStats.get(0).getLowestPrice() : 0;
                             int bSellNum = bSellStats != null ? bSellStats.get(0).getActiveCount() : 0;
-                            if (bSellNum != sellNum && sellNum <= 5) {
+                            if (bSellNum > sellNum && sellNum <= 5) {
                                 LOGGER.info(a.toString());
                             }
-                            if (bSellNum > sellNum &&buyNum < 3 && sellNum <= 1) {
+                            if (bSellNum != sellNum &&buyNum < 3 && sellNum <= 1) {
                                 return true;
                             }
-                            return (bSellNum > sellNum && sellPrice >= 9000);
+                            return (bSellNum != sellNum && sellPrice >= 9000);
                         }
                     }
                     return sellPrice >= 9000;
