@@ -2,7 +2,7 @@
 
 有没有成功过的回馈一下，这几天每天我都还是有三四件进账的，开源了没一点回馈和打空气一样，我看日志还是有人成功过的
 
-![f6bdf2068f6709e088f7539b92a36cb](https://github.com/user-attachments/assets/bc02d019-2ab4-4d3b-9f7a-3e638279d911)
+<img src="https://github.com/user-attachments/assets/bc02d019-2ab4-4d3b-9f7a-3e638279d911" alt="Image" style="width:300px;">
 
 ![Uploading 515317ff03c01a7d0066768bde8440c.png…]()
 
