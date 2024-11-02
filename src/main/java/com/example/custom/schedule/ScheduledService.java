@@ -355,7 +355,7 @@ public class ScheduledService {
                 int prePrice = 69999;
 
                 if (!"HEAVY METTLE".equals(a.getItem().getName()) && !"4a4a1d41-d476-4bf2-9dab-14086d8b4459".equals(itemId)) {
-                    if (sellNum <= 4) {
+                    if (sellNum <= 3) {
                         highSpeedTime = Instant.now();
                         if (hSellPrice > 10000) {
                             prePrice = hSellPrice - 1000;
