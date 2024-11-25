@@ -24,7 +24,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-
+import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -720,7 +720,8 @@ public class ScheduledService {
             LOGGER.info("创建售单");
             // 查找匹配项
             if (matcher.find()) {
-                sellTradeMap.put(itemId, matcher.group(1));
+                         String group = matcher.group(1);
+                sellTradeMap.put(itemId, group);
                   threadPool.submit(() -> {
                     try {
                         // 延迟 10 秒
