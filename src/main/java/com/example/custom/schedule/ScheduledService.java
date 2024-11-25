@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
+import java.util.concurrent.Executors;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,6 +69,7 @@ public class ScheduledService {
     public static List<Nodes> beforItem;
     public static List<String> lowerItemList = new LinkedList<String>();
     public static List<String> minLowerItemList = new LinkedList<String>();
+    ExecutorService threadPool = Executors.newFixedThreadPool(3);
 
     //晚上高频监控模式
     @Scheduled(cron = "* * 0,1,2,3,4,5,6,7,18,19,21,22,23 * * ?")
@@ -98,7 +99,7 @@ public class ScheduledService {
             httpPost.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
                     "(KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36 Edg/85.0.564.70");
             httpPost.setHeader("authorization", orderKey);
-            String jsonBody = "{\"operationName\":\"GetSellableItems\",\"variables\":{\"withOwnership\":false,\"spaceId\":\"0d2ae42d-4c27-4cb7-af6c-2099062302bb\",\"limit\":30,\"offset\":0,\"filterBy\":{\"types\":[],\"tags\":[]},\"sortBy\":{\"field\":\"ACTIVE_COUNT\",\"orderType\":\"Sell\",\"direction\":\"ASC\",\"paymentItemId\":\"9ef71262-515b-46e8-b9a8-b6b6ad456c67\"}},\"query\":\"query GetSellableItems($spaceId: String!, $limit: Int!, $offset: Int, $filterBy: MarketableItemFilter, $sortBy: MarketableItemSort) {\\n  game(spaceId: $spaceId) {\\n    viewer {\\n      meta {\\n        marketableItems(\\n          limit: $limit\\n          offset: $offset\\n          filterBy: $filterBy\\n          sortBy: $sortBy\\n          withMarketData: true\\n        ) {\\n          nodes {\\n            ...MarketableItemFragment\\n          }\\n        }\\n      }\\n    }\\n  }\\n}\\n\\nfragment MarketableItemFragment on MarketableItem {\\n  item {\\n    ...SecondaryStoreItemFragment\\n  }\\n  marketData {\\n    ...MarketDataFragment\\n  }\\n}\\n\\nfragment SecondaryStoreItemFragment on SecondaryStoreItem {\\n  itemId\\n  name\\n  tags\\n}\\n\\nfragment MarketDataFragment on MarketableItemMarketData {\\n  sellStats {\\n    lowestPrice\\n    highestPrice\\n    activeCount\\n  }\\n  buyStats {\\n    lowestPrice\\n    highestPrice\\n    activeCount\\n  }\\n  lastSoldAt {\\n    price\\n    performedAt\\n  }\\n}\"}";
+            String jsonBody = "{\"operationName\":\"GetSellableItems\",\"variables\":{\"withOwnership\":false,\"spaceId\":\"0d2ae42d-4c27-4cb7-af6c-2099062302bb\",\"limit\":60,\"offset\":0,\"filterBy\":{\"types\":[],\"tags\":[]},\"sortBy\":{\"field\":\"ACTIVE_COUNT\",\"orderType\":\"Sell\",\"direction\":\"ASC\",\"paymentItemId\":\"9ef71262-515b-46e8-b9a8-b6b6ad456c67\"}},\"query\":\"query GetSellableItems($spaceId: String!, $limit: Int!, $offset: Int, $filterBy: MarketableItemFilter, $sortBy: MarketableItemSort) {\\n  game(spaceId: $spaceId) {\\n    viewer {\\n      meta {\\n        marketableItems(\\n          limit: $limit\\n          offset: $offset\\n          filterBy: $filterBy\\n          sortBy: $sortBy\\n          withMarketData: true\\n        ) {\\n          nodes {\\n            ...MarketableItemFragment\\n          }\\n        }\\n      }\\n    }\\n  }\\n}\\n\\nfragment MarketableItemFragment on MarketableItem {\\n  item {\\n    ...SecondaryStoreItemFragment\\n  }\\n  marketData {\\n    ...MarketDataFragment\\n  }\\n}\\n\\nfragment SecondaryStoreItemFragment on SecondaryStoreItem {\\n  itemId\\n  name\\n  tags\\n}\\n\\nfragment MarketDataFragment on MarketableItemMarketData {\\n  sellStats {\\n    lowestPrice\\n    highestPrice\\n    activeCount\\n  }\\n  buyStats {\\n    lowestPrice\\n    highestPrice\\n    activeCount\\n  }\\n  lastSoldAt {\\n    price\\n    performedAt\\n  }\\n}\"}";
             StringEntity entity1 = new StringEntity(jsonBody);
             httpPost.setEntity(entity1);
             httpPost.setHeader("Content-Type", "application/json");
@@ -123,13 +124,13 @@ public class ScheduledService {
                 List<BuyStats> buyStats = a.getMarketData().getBuyStats();
                 int buyNum = buyStats != null ? buyStats.get(0).getActiveCount() : 0;
                 int buyPrice = buyStats != null ? buyStats.get(0).getHighestPrice() : 120;
-                if ("0b90d119-4a3e-4c24-8bfd-ad6d52638458".equals(itemId) || buyNum > 100) {
+                if ("0b90d119-4a3e-4c24-8bfd-ad6d52638458".equals(itemId) || buyNum > 60|| lastPrice >= 10000) {
                     return false;
                 }
 //                if (monitorItemId !=null && monitorItemId.equals(itemId)){
 //                    return false;
 //                }
-                int prePrice = 69999;
+                int prePrice = 58000;
 
                 if (!"HEAVY METTLE".equals(a.getItem().getName()) && !lowerItemList.contains(itemId)) {
                     if (sellNum <= 4) {
@@ -137,40 +138,32 @@ public class ScheduledService {
                             prePrice = hSellPrice - 1000;
                         } else {
                             if (a.getItem().getTags().contains("rarity_rare")) {
-                                prePrice = 34999;
+                                prePrice = 34000;
                             } else if (a.getItem().getTags().contains("rarity_uncommon")) {
                                 prePrice = 24000;
                             }
                         }
-                        if (sellNum <= 1) {
-                            try {
-                                if (hSellPrice < 10000 || sellNum == 0) {
-                                    Thread.sleep(1200);
-                                } else {
-                                    Thread.sleep(800);
-                                }
+                     try {
+                           if (sellNum==0){
+                               Thread.sleep(200);
+                           }else if (sellNum>=3){
+                               Thread.sleep(600);
+                           }else if (sellNum==2){
+                               Thread.sleep(400);
+                           }
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                             createdSell(itemId, orderKey, prePrice);
-                        }
-                        if (buyNum > 10 && buyPrice <= 2000 && buyPrice >= 100) {
-                            try {
-                                if (sellNum >= 4) {
-                                    Thread.sleep(1500);
-                                } else {
-                                    Thread.sleep(1000);
-                                }
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            createdSell(itemId, orderKey, prePrice);
-                        }
-                        if (sellTradeMap.get(itemId) == null) {
-                            String newTradeId = getNewSellTradeId();
-                            if (newTradeId != null) {
-                                cancelOrder(newTradeId);
-                            }
+                              if (sellTradeMap.get(itemId) == null) {
+              
+                                    String newTradeId = getNewSellTradeId();
+                                    if (newTradeId != null) {
+                                        cancelOrder(newTradeId);
+                                    }
+                    
+                                createdSell(itemId, orderKey,  prePrice);
+                         
                         }
 
                         if (exitItemId != null && exitItemId.equals(itemId)) {
@@ -185,20 +178,10 @@ public class ScheduledService {
 
                 int sellPrice = sellStats != null ? sellStats.get(0).getLowestPrice() : 0;
 
-                if (sellPrice < buyPrice && buyNum > 10) {
-                    if (hSellPrice > 10000) {
-                        prePrice = hSellPrice - 1000;
-                    } else {
-                        if (a.getItem().getTags().contains("rarity_rare")) {
-                            prePrice = 34000;
-                        } else if (a.getItem().getTags().contains("rarity_uncommon")) {
-                            prePrice = 20000;
-                        }
-                    }
+        
+                if (sellPrice <= buyPrice && buyNum > 5&&hSellPrice<1000&&sellNum>3) {
                     try {
-                        if (sellNum >= 3) {
-                            Thread.sleep(1500);
-                        }
+                        Thread.sleep(300);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -209,8 +192,6 @@ public class ScheduledService {
                     } else {
                         createdSell(itemId, orderKey, prePrice);
                     }
-
-                }
                 if (beforItem != null && beforItem.size() != 0) {
                     for (Nodes nodes1 : beforItem) {
                         if (nodes1.getItem().getItemId().equals(itemId)) {
@@ -515,7 +496,7 @@ public class ScheduledService {
         }
     }
 
-    @Scheduled(cron = "0/1 * * * * ?  ")
+    @Scheduled(cron = "0/1 * 8,9,10,11,12,13,14,15,16,17,20 * * ? ")
     public void scheduled3() {
         if (!hightSpeed) {
             return;
@@ -740,6 +721,16 @@ public class ScheduledService {
             // 查找匹配项
             if (matcher.find()) {
                 sellTradeMap.put(itemId, matcher.group(1));
+                  threadPool.submit(() -> {
+                    try {
+                        // 延迟 10 秒
+                        Thread.sleep(50000);
+                       cancelOrder(group);
+                       sellTradeMap.remove(itemId);
+                    } catch (InterruptedException e) {
+                        System.out.println("任务被中断");
+                    }
+                });
                 return true;
             } else {
                 return false;
