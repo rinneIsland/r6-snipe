@@ -72,7 +72,7 @@ public class ScheduledService {
     ExecutorService threadPool = Executors.newFixedThreadPool(3);
 
     //晚上高频监控模式
-    @Scheduled(cron = "* * 0,1,2,3,4,5,6,7,18,19,21,22,23 * * ?")
+    @Scheduled(cron = "* * 0,1,2,3,4,5,6,7,23 * * ?")
     public void scheduled5() {
         if (orderKey == null || orderKey.isEmpty()) {
             createdCreds();
@@ -192,6 +192,7 @@ public class ScheduledService {
                     } else {
                         createdSell(itemId, orderKey, prePrice);
                     }
+                }
                 if (beforItem != null && beforItem.size() != 0) {
                     for (Nodes nodes1 : beforItem) {
                         if (nodes1.getItem().getItemId().equals(itemId)) {
@@ -267,7 +268,7 @@ public class ScheduledService {
     }
 
     //白天低频监控模式
-    @Scheduled(cron = "0/3 * 8,9,10,11,12,13,14,15,16,17,20 * * ? ")
+    @Scheduled(cron = "0/3 * 8,9,10,11,12,13,14,15,16,17,18,19,21,22 * * ? ")
     public void scheduled2() {
         if (hightSpeed) {
             return;
